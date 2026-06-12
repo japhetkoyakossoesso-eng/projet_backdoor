@@ -1,14 +1,9 @@
-# SOCKETS RÉSEAU : SERVEUR
-#
-# socket
-#   bind (ip, port)  127.0.0.1 -> localhost
-#   listen
-#   accept -> socket / (ip, port)
-#   close
-
-# already used
-
 import socket
+import platform
+import os
+
+print("Platform:", platform.platform())
+print("OS:", os.name)
 
 HOST_IP = "127.0.0.1"
 HOST_PORT = 32000
@@ -33,8 +28,19 @@ def socket_receive_all_data(socket_p, data_len):
         current_data_len += len(data)
         print(" total_data_len:", current_data_len, " / ", data_len)
     return total_data
-       
- 
+
+def socket_send_command_and_receive_all_data(socket_p, command):
+    if not command:
+        return None
+    socket_p.sendall(command.encode())
+
+    header_data = socket_receive_all_data(socket_p, 13)
+    longueur_data = int(header_data.decode())
+    print("longueur_data =", longueur_data)
+
+    data_recues = socket_receive_all_data(socket_p, longueur_data)
+    return data_recues.decode()
+
 s = socket.socket()
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((HOST_IP, HOST_PORT))
@@ -45,21 +51,26 @@ connection_socket, client_address = s.accept()
 print(f"Connexion établie avec {client_address}")
 
 while True:
-    commande = input("Commande: ")
+    infos_data = socket_send_command_and_receive_all_data(connection_socket, "infos")
+    if not infos_data:
+        break
+
+    infos_split = infos_data.strip().split("|")
+    plateforme = infos_split[0]
+    cwd = infos_split[1] if len(infos_split) > 1 else ""
+
+    print(f"Platforme: {plateforme}")
+    print(f"Repertoire courant: {cwd}")
+
+    commande = input(client_address[0] + ":" + str(client_address[1]) + " " + cwd + " " + infos_data + " > ")
+
     if commande == "":
         continue
-    connection_socket.sendall(commande.encode())
 
-    header_data = socket_receive_all_data(connection_socket, 13)
-    longueur_data = int(header_data.decode())
-
-    print("longueur_data =", longueur_data)
-    data_recues = socket_receive_all_data(connection_socket, longueur_data)
-   
+    data_recues = socket_send_command_and_receive_all_data(connection_socket, commande)
     if not data_recues:
         break
-    print("Data reçues (longueur =", len(data_recues), "):")
-    print(data_recues.decode())
+    print(data_recues)
 
 s.close()
 connection_socket.close()
