@@ -1,0 +1,6 @@
+import pyscreenshot as ImageGrab
+
+capture_ecran = ImageGrab.grab()
+#capture_ecran.show()
+
+capture_ecran.save("capture_ecran.png", "PNG")
