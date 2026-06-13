@@ -41,9 +41,7 @@ def socket_send_command_and_receive_all_data(socket_p, command):
     print("longueur_data =", longueur_data)
 
     data_recues = socket_receive_all_data(socket_p, longueur_data)
-    if not data_recues:
-        return None
-    return data_recues.decode()
+    return data_recues  # bytes bruts
 
 s = socket.socket()
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -60,6 +58,7 @@ while True:
     infos_data = socket_send_command_and_receive_all_data(connection_socket, "infos")
     if not infos_data:
         break
+    infos_data = infos_data.decode()
 
     infos_split = infos_data.strip().split("|")
     plateforme = infos_split[0]
@@ -73,18 +72,21 @@ while True:
     commande_split = commande.split(" ")
     if len(commande_split) == 2 and commande_split[0] == "dl":
         dl_file_name = commande_split[1]
+    elif len(commande_split) == 2 and commande_split[0] == "capture":
+        dl_file_name = commande_split[1] + ".png"
 
     data_recues = socket_send_command_and_receive_all_data(connection_socket, commande)
     if not data_recues:
         break
 
     if dl_file_name:
-        with open(dl_file_name, "wb") as f:
-            f.write(data_recues.encode())  # str -> bytes pour écrire en binaire
-        print(f"Fichier {dl_file_name} téléchargé avec succès.")
+        save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), dl_file_name)
+        with open(save_path, "wb") as f:
+            f.write(data_recues)
+        print(f"Fichier sauvegardé : {save_path}")
         dl_file_name = None
     else:
-        print(data_recues)  # déjà un str, pas besoin de .decode()
+        print(data_recues.decode())
 
 s.close()
 connection_socket.close()
