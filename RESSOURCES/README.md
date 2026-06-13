@@ -1,41 +1,59 @@
 # 🔌 Backdoor Socket Python
 
-Projet pédagogique implémentant une backdoor simple en Python avec gestion d'un terminal distant via sockets TCP.
+Projet pédagogique implémentant une backdoor en Python avec terminal distant, téléchargement de fichiers et capture d'écran via sockets TCP.
 
 ## 📁 Structure
 
 ├── backdoor_client.py   # Client (machine cible)
 └── backdoor_serveur.py  # Serveur (machine attaquante)
-└──terminal.py          # Terminal distant
 
 
 ## ⚙️ Fonctionnement
 
 - Le **serveur** attend une connexion et envoie des commandes shell
 - Le **client** se connecte, exécute les commandes et renvoie les résultats
+- Récupération automatique des infos système à la connexion
 - Gestion du `cd` avec mise à jour du répertoire courant
+- Téléchargement de fichiers depuis la machine cible
+- Capture d'écran à distance
 - Reconnexion automatique côté client
+- Réception robuste des données via header 13 octets
 
 ## 🚀 Utilisation
 
 **Lancer le serveur :**
 ```bash
-python backdoor_serveur.py
+python3 backdoor_serveur.py
 ```
 
 **Lancer le client :**
 ```bash
-python backdoor_client.py
+python3 backdoor_client.py
 ```
 
-Puis saisir des commandes shell depuis le serveur (`ls`, `pwd`, `whoami`, etc.)
+## 📟 Commandes disponibles
+
+| Commande | Description |
+|---|---|
+| `ls`, `pwd`, `whoami`... | Commandes shell classiques |
+| `cd <dossier>` | Changer de répertoire |
+| `dl <fichier>` | Télécharger un fichier depuis la cible |
+| `capture <nom>` | Capturer l'écran de la cible (sauvegarde en .png) |
+| `infos` | Afficher la plateforme et le répertoire courant |
 
 ## 🛠️ Stack
 
 - Python 3
 - `socket` — communication TCP
-- `subprocess` — exécution de commandes
-- `os` — gestion du répertoire courant
+- `subprocess` — exécution de commandes shell
+- `os` / `platform` — infos système et gestion des répertoires
+- `pyscreenshot` — capture d'écran
+
+## 📦 Installation des dépendances
+
+```bash
+pip3 install pyscreenshot pillow
+```
 
 ## ⚠️ Avertissement
 
